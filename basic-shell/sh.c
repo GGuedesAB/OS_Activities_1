@@ -102,18 +102,16 @@ runcmd(struct cmd *cmd)
     /* MARK START task4
      * TAREFA4: Implemente codigo abaixo para executar
      * comando com pipes. */
-    int r;
-    int pfds [2];
-    pipe(pfds);
+    pipe(p);
     int pid = fork();
     if (pid == 0){
-      close(pfds[0]);
-      dup2(pfds[1],1);
+      close(p[0]);
+      dup2(p[1],1);
       runcmd(pcmd->left);
     }
     else{
-      close(pfds[1]);
-      dup2(pfds[0],0);
+      close(p[1]);
+      dup2(p[0],0);
       runcmd(pcmd->right);
     }
     wait(&r);
