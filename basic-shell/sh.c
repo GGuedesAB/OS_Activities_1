@@ -107,14 +107,14 @@ runcmd(struct cmd *cmd)
     pipe(pfds);
     int pid = fork();
     if (pid == 0){
+      close(pfds[0]);
+      dup2(pfds[1],1);
+      runcmd(pcmd->left);
+    }
+    else{
       close(pfds[1]);
       dup2(pfds[0],0);
       runcmd(pcmd->right);
-    }
-    else{
-      close(pfds[0]);
-      dup2(pfds[1],1);
-      runcmd(pcmd->left);  
     }
     wait(&r);
     /* MARK END task4 */
