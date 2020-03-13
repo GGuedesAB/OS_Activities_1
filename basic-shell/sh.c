@@ -76,7 +76,7 @@ runcmd(struct cmd *cmd)
     /* MARK START task2
      * TAREFA2: Implemente codigo abaixo para executar
      * comandos simples. */
-    fprintf(stderr, "exec nao implementado\n");
+    execvp(ecmd->argv[0],ecmd->argv);
     /* MARK END task2 */
     break;
 
@@ -86,7 +86,13 @@ runcmd(struct cmd *cmd)
     /* MARK START task3
      * TAREFA3: Implemente codigo abaixo para executar
      * comando com redirecionamento. */
-    fprintf(stderr, "redir nao implementado\n");
+    int pfd;
+    if ((pfd = open(rcmd->file, rcmd->mode,
+         S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) != -1)
+    {
+      dup2(pfd, rcmd->fd);
+      close (pfd);
+    }
     /* MARK END task3 */
     runcmd(rcmd->cmd);
     break;
@@ -96,7 +102,21 @@ runcmd(struct cmd *cmd)
     /* MARK START task4
      * TAREFA4: Implemente codigo abaixo para executar
      * comando com pipes. */
-    fprintf(stderr, "pipe nao implementado\n");
+    int r;
+    int pfds [2];
+    pipe(pfds);
+    int pid = fork();
+    if (pid == 0){
+      close(pfds[1]);
+      dup2(pfds[0],0);
+      runcmd(pcmd->right);
+    }
+    else{
+      close(pfds[0]);
+      dup2(pfds[1],1);
+      runcmd(pcmd->left);  
+    }
+    wait(&r);
     /* MARK END task4 */
     break;
   }    
@@ -130,7 +150,7 @@ main(void)
     if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
       buf[strlen(buf)-1] = 0;
       if(chdir(buf+3) < 0)
-        fprintf(stderr, "reporte erro\n");
+        fprintf(stderr, "Diretorio inexistente.\n");
       continue;
     }
     /* MARK END task1 */
