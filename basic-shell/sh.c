@@ -20,6 +20,7 @@
  ***************************************************************/
 
 #define MAXARGS 10
+#define HIST_SIZE 50
 
 /* Todos comandos tem um tipo.  Depois de olhar para o tipo do
  * comando, o código converte um *cmd para o tipo específico de
@@ -28,6 +29,16 @@ struct cmd {
   int type; /* ' ' (exec)
                '|' (pipe)
                '<' or '>' (redirection) */
+};
+
+struct history_field {
+  int cmd_number;
+  char cmd [100];
+};
+
+struct cmd_history {
+  int cmd_count; // Contém o número de comando inseridos
+  struct history_field cmd_circular_list [HIST_SIZE];
 };
 
 struct execcmd {
@@ -51,6 +62,10 @@ struct pipecmd {
 
 int fork1(void);  // Fork mas fechar se ocorrer erro.
 struct cmd *parsecmd(char*); // Processar o linha de comando.
+void insert_new_cmd (char*, struct cmd_history*);
+void history (struct cmd_history*);
+struct cmd_history init_cmd_history ();
+int is_shell_builtin (char*);
 
 /* Executar comando cmd.  Nunca retorna. */
 void
@@ -136,6 +151,7 @@ getcmd(char *buf, int nbuf)
 int
 main(void)
 {
+  struct cmd_history cmd_h = init_cmd_history();
   static char buf[100];
   int r;
 
@@ -153,8 +169,13 @@ main(void)
     }
     /* MARK END task1 */
 
-    if(fork1() == 0)
+    insert_new_cmd(buf, &cmd_h);
+    if (is_shell_builtin(buf)) {
+      history(&cmd_h);
+    }
+    else if(fork1() == 0){
       runcmd(parsecmd(buf));
+    }
     wait(&r);
   }
   exit(0);
@@ -174,6 +195,56 @@ fork1(void)
 /****************************************************************
  * Funcoes auxiliares para criar estruturas de comando
  ***************************************************************/
+
+struct cmd_history 
+init_cmd_history ()
+{
+  struct cmd_history new_cmd_history;
+  new_cmd_history.cmd_count=0;
+  return new_cmd_history;
+}
+
+// After inserting a new command into cmd_h it exits with a pointer to the next free position
+void 
+insert_new_cmd (char* cmd, struct cmd_history* cmd_h)
+{
+  int new_cmd_position_in_list = 0;
+  if (cmd_h->cmd_count > 0){
+    new_cmd_position_in_list = (cmd_h->cmd_count % HIST_SIZE);
+  }
+  memcpy(cmd_h->cmd_circular_list[new_cmd_position_in_list].cmd, cmd, 100);
+  cmd_h->cmd_count++;
+  cmd_h->cmd_circular_list[new_cmd_position_in_list].cmd_number = cmd_h->cmd_count;
+}
+
+void 
+history (struct cmd_history* cmd_h)
+{
+  int i = 0;
+  int j = 0;
+  int max_index = cmd_h->cmd_count;
+  if (cmd_h->cmd_count < HIST_SIZE){
+    for (i=0; i<max_index; i++){
+      fprintf(stdout, "%d %s", cmd_h->cmd_circular_list[i].cmd_number, cmd_h->cmd_circular_list[i].cmd);
+    }
+  }
+  else {
+    int oldest_cmd = (max_index - HIST_SIZE) % HIST_SIZE;
+    for (i=oldest_cmd,j=0; j<HIST_SIZE; j++){
+      fprintf(stdout, "%d %s", cmd_h->cmd_circular_list[i].cmd_number, cmd_h->cmd_circular_list[i].cmd);
+      i = (i+1) % HIST_SIZE;
+    }
+  }
+}
+
+int is_shell_builtin (char* cmd){
+  if (cmd[0]=='h' && cmd[1]=='i' && cmd[2]=='s' && cmd[3]=='t' && cmd[4]=='o' && cmd[5]=='r' && cmd[6]=='y'){
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
 
 struct cmd*
 execcmd(void)
