@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <assert.h>
+#include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -21,6 +22,7 @@
 
 #define MAXARGS 10
 #define HIST_SIZE 50
+#define BUILTINS_NUMBER 1
 
 /* Todos comandos tem um tipo.  Depois de olhar para o tipo do
  * comando, o código converte um *cmd para o tipo específico de
@@ -222,14 +224,14 @@ history (struct cmd_history* cmd_h)
 {
   int i = 0;
   int j = 0;
-  int max_index = cmd_h->cmd_count;
+  const int max_index = cmd_h->cmd_count;
   if (cmd_h->cmd_count < HIST_SIZE){
     for (i=0; i<max_index; i++){
       fprintf(stdout, "%d %s", cmd_h->cmd_circular_list[i].cmd_number, cmd_h->cmd_circular_list[i].cmd);
     }
   }
   else {
-    int oldest_cmd = (max_index - HIST_SIZE) % HIST_SIZE;
+    const int oldest_cmd = (max_index - HIST_SIZE) % HIST_SIZE;
     for (i=oldest_cmd,j=0; j<HIST_SIZE; j++){
       fprintf(stdout, "%d %s", cmd_h->cmd_circular_list[i].cmd_number, cmd_h->cmd_circular_list[i].cmd);
       i = (i+1) % HIST_SIZE;
@@ -238,12 +240,14 @@ history (struct cmd_history* cmd_h)
 }
 
 int is_shell_builtin (char* cmd){
-  if (cmd[0]=='h' && cmd[1]=='i' && cmd[2]=='s' && cmd[3]=='t' && cmd[4]=='o' && cmd[5]=='r' && cmd[6]=='y'){
-    return 1;
+  const char *builtins_table [BUILTINS_NUMBER] = {"history\n"};
+  int i = 0;
+  for (i=0; i<BUILTINS_NUMBER; i++){
+    if (strcmp (builtins_table[i],cmd)==0){
+      return 1;
+    }
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 struct cmd*
