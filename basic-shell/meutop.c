@@ -40,6 +40,7 @@ typedef struct directory_name_list {
 int count_processes(const proctb *);
 
 char* process_table_to_string (const proctb *proc_tb){
+    int line_iterator = 3;
     int lines = 3;
     int line_width = 61;
     lines += count_processes(proc_tb);
@@ -49,7 +50,8 @@ char* process_table_to_string (const proctb *proc_tb){
     if (NULL == proc_tb)
         return NULL;
     proctb_el *current_proc_element = proc_tb->head;
-    while (NULL != current_proc_element){
+    while (NULL != current_proc_element && line_iterator < LINES-3){
+        line_iterator++;
         sprintf(process_table_as_string, "%s%7d| %14s| %24s| %c      |\n", process_table_as_string, current_proc_element->pid, current_proc_element->user, 
                                                                            current_proc_element->procname, current_proc_element->state);
         current_proc_element = current_proc_element->next;
@@ -234,8 +236,12 @@ int main (int argc, char* argv[]){
     WINDOW *w;
 
     if ((w = initscr()) == NULL) {
-        fprintf(stderr, "Error: initscr()\n");
+        fprintf(stderr, "Could not start a terminal.\n");
         exit(EXIT_FAILURE);
+    }
+    if (COLS < 62){
+        fprintf(stderr, "Window is too small to show process table.\n");
+        exit(1);
     }
     keypad(stdscr, TRUE);
     noecho();
@@ -279,6 +285,5 @@ int main (int argc, char* argv[]){
 
     delwin(w);
     endwin();
-    //printf("%s", process_table);
     return 0;
 }
