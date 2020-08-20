@@ -135,6 +135,7 @@ runcmd(struct cmd *cmd)
       close(p[READ_END]);
       dup2(p[WRITE_END], STDOUT_FILENO);
       runcmd(pcmd->left);
+      close(p[WRITE_END]);
     }
     // If on parent
     else {
@@ -142,6 +143,7 @@ runcmd(struct cmd *cmd)
       dup2(p[READ_END], STDIN_FILENO);
       wait(&r);
       runcmd(pcmd->right);
+      close(p[READ_END]);
     }
     /* MARK END task4 */
     break;
