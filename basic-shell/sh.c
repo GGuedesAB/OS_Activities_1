@@ -22,7 +22,7 @@
 
 #define MAXARGS 10
 #define HIST_SIZE 50
-#define BUILTINS_NUMBER 1
+#define BUILTINS_NUMBER 2
 
 /* Todos comandos tem um tipo.  Depois de olhar para o tipo do
  * comando, o código converte um *cmd para o tipo específico de
@@ -121,17 +121,19 @@ runcmd(struct cmd *cmd)
      * comando com pipes. */
     pipe(p);
     int pid = fork();
+    // If on child
     if (pid == 0){
       close(p[0]);
       dup2(p[1],1);
       runcmd(pcmd->left);
     }
+    // If on parent
     else{
       close(p[1]);
       dup2(p[0],0);
+      wait(&r);
       runcmd(pcmd->right);
     }
-    wait(&r);
     /* MARK END task4 */
     break;
   }    
@@ -156,6 +158,8 @@ main(void)
   struct cmd_history cmd_h = init_cmd_history();
   static char buf[100];
   int r;
+  int bid = 0;
+  pid_t my_children = 0;
 
   // Ler e rodar comandos.
   while(getcmd(buf, sizeof(buf)) >= 0){
@@ -172,13 +176,23 @@ main(void)
     /* MARK END task1 */
 
     insert_new_cmd(buf, &cmd_h);
-    if (is_shell_builtin(buf)) {
-      history(&cmd_h);
+    if (bid = is_shell_builtin(buf)) {
+      switch (bid)
+      {
+      case 1:
+        history(&cmd_h);
+        break;
+      case 2:
+        exit(0);
+      default:
+        break;
+      }
     }
-    else if(fork1() == 0){
+    else if((my_children = fork1()) == 0){
       runcmd(parsecmd(buf));
+    } else {
+      wait(&r);
     }
-    wait(&r);
   }
   exit(0);
 }
@@ -240,11 +254,11 @@ history (struct cmd_history* cmd_h)
 }
 
 int is_shell_builtin (char* cmd){
-  const char *builtins_table [BUILTINS_NUMBER] = {"history\n"};
+  const char *builtins_table [BUILTINS_NUMBER] = {"history\n", "exit\n"};
   int i = 0;
   for (i=0; i<BUILTINS_NUMBER; i++){
-    if (strcmp (builtins_table[i],cmd)==0){
-      return 1;
+    if (strcmp (builtins_table[i], cmd)==0){
+      return i+1;
     }
   }
   return 0;
