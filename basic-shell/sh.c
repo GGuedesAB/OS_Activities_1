@@ -25,8 +25,6 @@
 #define BUILTINS_NUMBER 2
 #define READ_END 0
 #define WRITE_END 1
-#define STDIN_FD 0
-#define STDOUT_FD 1
 
 /* Todos comandos tem um tipo.  Depois de olhar para o tipo do
  * comando, o código converte um *cmd para o tipo específico de
@@ -127,21 +125,21 @@ runcmd(struct cmd *cmd)
       fprintf(stderr, "Não foi possível criar o pipe.");
       exit(1);
     }
-    pid_t pid = -1;
-    if (pid = fork() < 0) {
-      fprintf(stderr, "Não foi possível criar processo filho.");
+    pid_t pid = fork();
+    if (pid < 0) {
+      fprintf(stderr, "Não foi possível invocar o fork.");
       exit(1);
     }
     // If on child
-    if (pid == 0){
+    if (pid == 0) {
       close(p[READ_END]);
-      dup2(p[WRITE_END], STDOUT_FD);
+      dup2(p[WRITE_END], STDOUT_FILENO);
       runcmd(pcmd->left);
     }
     // If on parent
-    else{
+    else {
       close(p[WRITE_END]);
-      dup2(p[READ_END],STDIN_FD);
+      dup2(p[READ_END], STDIN_FILENO);
       wait(&r);
       runcmd(pcmd->right);
     }
