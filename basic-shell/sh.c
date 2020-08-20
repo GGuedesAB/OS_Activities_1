@@ -123,7 +123,11 @@ runcmd(struct cmd *cmd)
       fprintf(stderr, "Não foi possível criar o pipe.");
       exit(1);
     }
-    pid_t pid = fork();
+    pid_t pid = -1;
+    if (pid = fork() < 0) {
+      fprintf(stderr, "Não foi possível criar processo filho.");
+      exit(1);
+    }
     // If on child
     if (pid == 0){
       close(p[0]);
