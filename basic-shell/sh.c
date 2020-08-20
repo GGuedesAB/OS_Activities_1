@@ -23,6 +23,10 @@
 #define MAXARGS 10
 #define HIST_SIZE 50
 #define BUILTINS_NUMBER 2
+#define READ_END 0
+#define WRITE_END 1
+#define STDIN_FD 0
+#define STDOUT_FD 1
 
 /* Todos comandos tem um tipo.  Depois de olhar para o tipo do
  * comando, o código converte um *cmd para o tipo específico de
@@ -130,14 +134,14 @@ runcmd(struct cmd *cmd)
     }
     // If on child
     if (pid == 0){
-      close(p[0]);
-      dup2(p[1],1);
+      close(p[READ_END]);
+      dup2(p[WRITE_END], STDOUT_FD);
       runcmd(pcmd->left);
     }
     // If on parent
     else{
-      close(p[1]);
-      dup2(p[0],0);
+      close(p[WRITE_END]);
+      dup2(p[READ_END],STDIN_FD);
       wait(&r);
       runcmd(pcmd->right);
     }
