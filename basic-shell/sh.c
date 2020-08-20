@@ -119,8 +119,11 @@ runcmd(struct cmd *cmd)
     /* MARK START task4
      * TAREFA4: Implemente codigo abaixo para executar
      * comando com pipes. */
-    pipe(p);
-    int pid = fork();
+    if (pipe(p) == -1) {
+      fprintf(stderr, "Não foi possível criar o pipe.");
+      exit(1);
+    }
+    pid_t pid = fork();
     // If on child
     if (pid == 0){
       close(p[0]);
