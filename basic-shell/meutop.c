@@ -45,18 +45,23 @@ char* process_table_to_string (const proctb *proc_tb){
     int line_width = 61;
     lines += count_processes(proc_tb);
     char* process_table_as_string = (char*)malloc(lines*line_width*sizeof(char));
-    sprintf(process_table_as_string, "PID    | User          | PROCNAME                | Estado |\n");
-    sprintf(process_table_as_string, "%s-------|---------------|-------------------------|--------|\n", process_table_as_string);
+    strcpy(process_table_as_string, "PID    | User          | PROCNAME                | Estado |\n");
+    strcat(process_table_as_string, "-------|---------------|-------------------------|--------|\n");
     if (NULL == proc_tb)
         return NULL;
     proctb_el *current_proc_element = proc_tb->head;
+
+    char* table_line = (char*)malloc(line_width*sizeof(char));
     while (NULL != current_proc_element && line_iterator < LINES-3){
         line_iterator++;
-        sprintf(process_table_as_string, "%s%7d| %14s| %24s| %c      |\n", process_table_as_string, current_proc_element->pid, current_proc_element->user, 
-                                                                           current_proc_element->procname, current_proc_element->state);
+
+        sprintf(table_line, "%7d| %14s| %24s| %c      |\n", current_proc_element->pid, current_proc_element->user,                                                             current_proc_element->procname,
+            current_proc_element->state
+        );
+        strcat(process_table_as_string, table_line);
         current_proc_element = current_proc_element->next;
     }
-    sprintf(process_table_as_string, "%s-------|---------------|-------------------------|--------|\n", process_table_as_string);
+    strcat(process_table_as_string, "-------|---------------|-------------------------|--------|\n");
     return process_table_as_string;
 }
 

@@ -9,8 +9,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-/* MARK NAME Seu Nome Aqui */
-/* MARK NAME Nome de Outro Integrante Aqui */
+/* MARK NAME Gustavo Guedes */
+/* MARK NAME Marcio Roberto Andrade Souza Filho */
 /* MARK NAME E Etc */
 
 /****************************************************************
@@ -177,7 +177,11 @@ main(void)
     /* MARK START task1 */
     /* TAREFA1: O que faz o if abaixo e por que ele é necessário?
      * Insira sua resposta no código e modifique o fprintf abaixo
-     * para reportar o erro corretamente. */
+     * para reportar o erro corretamente.
+     * 
+     * Resposta: Ele captura as chamadas para o comando cd. Ele é necessário
+     * para detectar quando cd e' chamado mas o diretorio nao existe
+     */
     if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
       buf[strlen(buf)-1] = 0;
       if(chdir(buf+3) < 0)
@@ -187,7 +191,7 @@ main(void)
     /* MARK END task1 */
 
     insert_new_cmd(buf, &cmd_h);
-    if (bid = is_shell_builtin(buf)) {
+    if ((bid = is_shell_builtin(buf))) {
       switch (bid)
       {
       case 1:
